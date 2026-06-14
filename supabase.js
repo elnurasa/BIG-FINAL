@@ -225,6 +225,100 @@ async function sbLoadAll() {
 }
 
 // ═══════════════════════════════════════════
+// DIVISION METRICS
+// ═══════════════════════════════════════════
+async function sbLoadMetrics() {
+  if (!supabaseAvailable) { notAvailable('sbLoadMetrics'); return null; }
+  try { return await sbSelectAll('division_metrics'); }
+  catch (e) { console.warn('[ZBOD] sbLoadMetrics failed:', e.message); return null; }
+}
+
+async function sbSaveMetrics(divisionId, metricsArray) {
+  if (!supabaseAvailable) { notAvailable('sbSaveMetrics'); return false; }
+  try {
+    const { error } = await _supabaseClient
+      .from('division_metrics')
+      .upsert(
+        { 
+          division_id: divisionId, 
+          metrics_json: JSON.stringify(metricsArray), 
+          updated_at: new Date().toISOString() 
+        },
+        { onConflict: 'division_id' }
+      );
+
+    if (error) throw error;
+    return true;
+  } catch (e) {
+    console.warn('[ZBOD] sbSaveMetrics failed:', e.message);
+    return false;
+  }
+}
+
+async function sbDeleteMetrics(divisionId) {
+  if (!supabaseAvailable) { notAvailable('sbDeleteMetrics'); return false; }
+  try {
+    const { error } = await _supabaseClient
+      .from('division_metrics')
+      .delete()
+      .eq('division_id', divisionId);
+
+    if (error) throw error;
+    return true;
+  } catch (e) {
+    console.warn('[ZBOD] sbDeleteMetrics failed:', e.message);
+    return false;
+  }
+}
+
+// ═══════════════════════════════════════════
+// DIVISION KEY FINDINGS
+// ═══════════════════════════════════════════
+async function sbLoadKeyFindings() {
+  if (!supabaseAvailable) { notAvailable('sbLoadKeyFindings'); return null; }
+  try { return await sbSelectAll('division_key_findings'); }
+  catch (e) { console.warn('[ZBOD] sbLoadKeyFindings failed:', e.message); return null; }
+}
+
+async function sbSaveKeyFindings(divisionId, findingsArray) {
+  if (!supabaseAvailable) { notAvailable('sbSaveKeyFindings'); return false; }
+  try {
+    const { error } = await _supabaseClient
+      .from('division_key_findings')
+      .upsert(
+        { 
+          division_id: divisionId, 
+          findings_json: JSON.stringify(findingsArray), 
+          updated_at: new Date().toISOString() 
+        },
+        { onConflict: 'division_id' }
+      );
+
+    if (error) throw error;
+    return true;
+  } catch (e) {
+    console.warn('[ZBOD] sbSaveKeyFindings failed:', e.message);
+    return false;
+  }
+}
+
+async function sbDeleteKeyFindings(divisionId) {
+  if (!supabaseAvailable) { notAvailable('sbDeleteKeyFindings'); return false; }
+  try {
+    const { error } = await _supabaseClient
+      .from('division_key_findings')
+      .delete()
+      .eq('division_id', divisionId);
+
+    if (error) throw error;
+    return true;
+  } catch (e) {
+    console.warn('[ZBOD] sbDeleteKeyFindings failed:', e.message);
+    return false;
+  }
+}
+
+// ═══════════════════════════════════════════
 // EXPORT
 // ═══════════════════════════════════════════
 window.zbodSupabase = {
