@@ -165,15 +165,6 @@ function addDiv(data) {
   return d;
 }
 
-  divs.push(d);
-  lsSet(LS.divisions, divs);
-
-  if (window.zbodSupabase?.supabaseAvailable) {
-    window.zbodSupabase.sbSaveDivision(d);
-  }
-
-  return d;
-}
 function updDiv(id, updates) {
   const divs = getDivs().map(d => d.id === id ? {...d, ...updates, updated_at: new Date().toISOString()} : d);
   lsSet(LS.divisions, divs);
