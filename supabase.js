@@ -214,14 +214,20 @@ async function sbSyncAll(divisions, workshops, functions, asIsFns) {
 async function sbLoadAll() {
   if (!supabaseAvailable) { notAvailable('sbLoadAll'); return null; }
   try {
-    const [divisions, workshops, functions, asIsFns] = await Promise.all([
+    const [divisions, workshops, functions, asIsFns, metrics, keyFindings] = await Promise.all([
       sbLoadDivisions(),
       sbLoadWorkshops(),
       sbLoadFunctions(),
       sbLoadAsIsFunctions(),
+      sbLoadMetrics(),
+      sbLoadKeyFindings(),
     ]);
-    return { divisions, workshops, functions, asIsFns };
-  } catch (e) { console.warn('[ZBOD] sbLoadAll failed:', e.message); return null; }
+
+    return { divisions, workshops, functions, asIsFns, metrics, keyFindings };
+  } catch (e) {
+    console.warn('[ZBOD] sbLoadAll failed:', e.message);
+    return null;
+  }
 }
 
 // ═══════════════════════════════════════════
@@ -335,4 +341,10 @@ window.zbodSupabase = {
   sbLoadAsIsFunctions, sbSaveAsIsFunction, sbDeleteAsIsFunction,
   sbSyncAll, sbLoadAll,
   sbLoadLandingBoxes, sbSaveLandingBox, sbDeleteLandingBox,
+  sbLoadMetrics,
+  sbSaveMetrics,
+  sbDeleteMetrics,
+  sbLoadKeyFindings,
+  sbSaveKeyFindings,
+  sbDeleteKeyFindings,
 };
