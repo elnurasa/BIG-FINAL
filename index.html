@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZBOD Tool - Zero Based Organizational Design</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <link rel="stylesheet" href="style.css?v=20">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="supabase.js?v=13"></script>
+</head>
+<body>
+  <!-- Background gradient shapes -->
+  <div class="bg-gradient-shapes">
+    <div class="bg-shape-1"></div>
+    <div class="bg-shape-2"></div>
+    <div class="bg-shape-3"></div>
+  </div>
+
+  <div class="zbod-toast-container" id="toast-container"></div>
+
+  <!-- ===== LANDING PAGE ===== -->
+  <div id="page-landing" class="page hidden" style="position:relative;z-index:1;">
+    <nav class="sticky-header">
+      <div class="flex items-center justify-between px-8 py-4 max-w-7xl mx-auto">
+        <div class="flex items-center gap-3">
+          <img src="logo.png" alt="Azerconnect Group" style="height:40px;width:auto;object-fit:contain;">
+        </div>
+        <button class="zbod-btn-primary" onclick="app.goToDivisions()">Start Workshop</button>
+      </div>
+    </nav>
+    <div id="landing-content"></div>
+  </div>
+
+  <!-- ===== STRUCTURES PAGE ===== -->
+  <div id="page-divisions" class="page hidden" style="position:relative;z-index:1;">
+    <nav class="sticky-header">
+      <div class="flex items-center justify-between px-8 py-4 max-w-7xl mx-auto">
+        <div class="flex items-center gap-4">
+          <button class="zbod-btn-secondary" style="padding:10px 14px;" onclick="app.goToLanding()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          </button>
+          <h1 style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:18px;color:#1a1a2e;">Organizational Structures</h1>
+        </div>
+        <button class="zbod-btn-primary" onclick="app.showAddDivision()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Structure
+        </button>
+      </div>
+    </nav>
+    <div class="p-8 max-w-7xl mx-auto" id="divisions-content"></div>
+    <!-- Add Structure Dialog -->
+    <div id="division-dialog" class="hidden" style="position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:16px;">
+      <div class="zbod-card zbod-dialog" style="padding:24px;">
+        <h3 style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:20px;color:#1a1a2e;margin-bottom:16px;">Add New Structure</h3>
+        <div id="division-form-errors" style="color:#991b1b;font-size:13px;margin-bottom:12px;"></div>
+        <div class="space-y-3" id="division-form-fields"></div>
+        <div class="flex gap-3 mt-6">
+          <button class="zbod-btn-secondary flex-1" onclick="app.hideAddDivision()">Cancel</button>
+          <button class="zbod-btn-primary flex-1" onclick="app.submitAddDivision()">Add Structure</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== WORKSPACE PAGE ===== -->
+  <div id="page-workspace" class="page hidden" style="position:relative;z-index:1;">
+    <nav class="sticky-header">
+      <div class="flex items-center justify-between px-8 py-4 max-w-7xl mx-auto" id="workspace-header"></div>
+    </nav>
+    <div class="p-8 max-w-7xl mx-auto space-y-8" id="workspace-content"></div>
+    <!-- Workshop dialog -->
+    <div id="workshop-dialog" class="hidden" style="position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:16px;">
+      <div class="zbod-card zbod-dialog" style="padding:24px;">
+        <h3 style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:20px;color:#1a1a2e;margin-bottom:16px;" id="workshop-dialog-title">Start New Workshop</h3>
+        <p style="font-size:14px;color:#6b7280;margin-bottom:16px;" id="workshop-dialog-body"></p>
+        <div class="flex gap-3" id="workshop-dialog-buttons"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== WORKSHOP PHASE 1 ===== -->
+  <div id="page-phase1" class="page hidden" style="position:relative;z-index:1;">
+    <nav class="sticky-header">
+      <div class="flex items-center justify-between px-8 py-4" id="phase1-header"></div>
+    </nav>
+    <div class="px-8 py-4" style="border-bottom:1px solid rgba(46,100,44,0.1);">
+      <div class="max-w-3xl mx-auto">
+        <div class="zbod-phase-tracker justify-center">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+            <div class="zbod-phase-dot active">1</div>
+            <span style="font-size:11px;color:#2E642C;font-weight:600;white-space:nowrap;">Function ID</span>
+          </div>
+          <div class="zbod-phase-line active"></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+            <div class="zbod-phase-dot pending">2</div>
+            <span style="font-size:11px;color:#9ca3af;font-weight:600;white-space:nowrap;">Business Impact</span>
+          </div>
+          <div class="zbod-phase-line"></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+            <div class="zbod-phase-dot pending">3</div>
+            <span style="font-size:11px;color:#9ca3af;font-weight:600;white-space:nowrap;">HC &amp; Cost</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="p-8 max-w-7xl mx-auto" id="phase1-content"></div>
+  </div>
+
+  <!-- ===== WORKSHOP PHASE 2 ===== -->
+  <div id="page-phase2" class="page hidden" style="position:relative;z-index:1;">
+    <nav class="sticky-header">
+      <div class="flex items-center justify-between px-8 py-4" id="phase2-header"></div>
+    </nav>
+    <div class="px-8 py-4" style="border-bottom:1px solid rgba(46,100,44,0.1);">
+      <div class="max-w-3xl mx-auto">
+        <div class="zbod-phase-tracker justify-center">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+            <div class="zbod-phase-dot completed">1</div>
+            <span style="font-size:11px;color:#2E642C;font-weight:600;white-space:nowrap;">Function ID</span>
+          </div>
+          <div class="zbod-phase-line active"></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+            <div class="zbod-phase-dot active">2</div>
+            <span style="font-size:11px;color:#2E642C;font-weight:600;white-space:nowrap;">Business Impact</span>
+          </div>
+          <div class="zbod-phase-line active"></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+            <div class="zbod-phase-dot pending">3</div>
+            <span style="font-size:11px;color:#9ca3af;font-weight:600;white-space:nowrap;">HC &amp; Cost</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="px-8 py-6 max-w-6xl mx-auto" id="phase2-content"></div>
+  </div>
+
+  <!-- ===== WORKSHOP PHASE 3 ===== -->
+  <div id="page-phase3" class="page hidden" style="position:relative;z-index:1;">
+    <nav class="sticky-header">
+      <div class="flex items-center justify-between px-8 py-4" id="phase3-header"></div>
+    </nav>
+    <div class="px-8 py-4" style="border-bottom:1px solid rgba(46,100,44,0.1);">
+      <div class="max-w-3xl mx-auto">
+        <div class="zbod-phase-tracker justify-center">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+            <div class="zbod-phase-dot completed">1</div>
+            <span style="font-size:11px;color:#2E642C;font-weight:600;white-space:nowrap;">Function ID</span>
+          </div>
+          <div class="zbod-phase-line active"></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+            <div class="zbod-phase-dot completed">2</div>
+            <span style="font-size:11px;color:#2E642C;font-weight:600;white-space:nowrap;">Business Impact</span>
+          </div>
+          <div class="zbod-phase-line active"></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+            <div class="zbod-phase-dot active">3</div>
+            <span style="font-size:11px;color:#2E642C;font-weight:600;white-space:nowrap;">HC &amp; Cost</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="p-8 max-w-6xl mx-auto" id="phase3-content"></div>
+  </div>
+
+  <!-- ===== REVIEW PAGE ===== -->
+  <div id="page-review" class="page hidden" style="position:relative;z-index:1;">
+    <nav class="sticky-header">
+      <div class="flex items-center justify-between px-8 py-4" id="review-header"></div>
+    </nav>
+    <div class="p-8 max-w-7xl mx-auto" id="review-content"></div>
+  </div>
+
+  <!-- ===== TRANSITION / EXECUTIVE DASHBOARD ===== -->
+  <div id="page-transition" class="page hidden" style="position:relative;z-index:1;">
+    <nav class="sticky-header">
+      <div class="flex items-center justify-between px-8 py-4" id="transition-header"></div>
+    </nav>
+    <div class="p-8 max-w-7xl mx-auto" id="transition-content"></div>
+  </div>
+
+  <!-- ===== HISTORY PAGE ===== -->
+  <div id="page-history" class="page hidden" style="position:relative;z-index:1;">
+    <nav class="sticky-header">
+      <div class="flex items-center justify-between px-8 py-4" id="history-header"></div>
+    </nav>
+    <div class="p-8 max-w-5xl mx-auto" id="history-content"></div>
+  </div>
+
+  <!-- ===== HISTORY REVIEW PAGE ===== -->
+  <div id="page-history-review" class="page hidden" style="position:relative;z-index:1;">
+    <nav class="sticky-header">
+      <div class="flex items-center justify-between px-8 py-4" id="history-review-header"></div>
+    </nav>
+    <div class="p-8 max-w-7xl mx-auto space-y-8" id="history-review-content"></div>
+  </div>
+
+  <script src="script.js?v=2"></script>
+</body>
+</html>
