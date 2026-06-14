@@ -157,6 +157,7 @@ document.addEventListener('wheel', function(e) {
 // LOCALSTORAGE DATA LAYER
 // ═══════════════════════════════════════════
 function getDivs() { return lsGet(LS.divisions, []); }
+function getDivs() { return lsGet(LS.divisions, []); }
 function addDiv(data) {
   const divs = getDivs(); const now = new Date().toISOString();
   const d = { id: genId(), ...data, created_at: now, updated_at: now };
@@ -164,16 +165,11 @@ function addDiv(data) {
   if (window.zbodSupabase) window.zbodSupabase.sbSaveDivision(d);
   return d;
 }
-
 function updDiv(id, updates) {
   const divs = getDivs().map(d => d.id === id ? {...d, ...updates, updated_at: new Date().toISOString()} : d);
   lsSet(LS.divisions, divs);
   const updated = divs.find(d => d.id === id);
   if (updated && window.zbodSupabase) window.zbodSupabase.sbSaveDivision(updated);
-}
-function delDiv(id) {
-  lsSet(LS.divisions, getDivs().filter(d => d.id !== id));
-  if (window.zbodSupabase) window.zbodSupabase.sbDeleteDivision(id);
 }
 
 function getWs() { return lsGet(LS.workshops, []); }
