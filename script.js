@@ -158,9 +158,12 @@ document.addEventListener('wheel', function(e) {
 // ═══════════════════════════════════════════
 function getDivs() { return lsGet(LS.divisions, []); }
 function addDiv(data) {
-  const divs = getDivs();
-  const now = new Date().toISOString();
+  const divs = getDivs(); const now = new Date().toISOString();
   const d = { id: genId(), ...data, created_at: now, updated_at: now };
+  divs.push(d); lsSet(LS.divisions, divs);
+  if (window.zbodSupabase) window.zbodSupabase.sbSaveDivision(d);
+  return d;
+}
 
   divs.push(d);
   lsSet(LS.divisions, divs);
