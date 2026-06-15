@@ -172,7 +172,12 @@ function updDiv(id, updates) {
 }
 function delDiv(id) {
   lsSet(LS.divisions, getDivs().filter(d => d.id !== id));
-  if (window.zbodSupabase) window.zbodSupabase.sbDeleteDivision(id);
+
+  if (window.zbodSupabase) {
+    window.zbodSupabase.sbDeleteDivision(id);
+    window.zbodSupabase.sbDeleteMetrics(id);
+    window.zbodSupabase.sbDeleteKeyFindings(id);
+  }
 }
 
 function getWs() { return lsGet(LS.workshops, []); }
@@ -229,9 +234,25 @@ function delAsIsFn(id) {
 }
 
 function getMetrics() { return lsGet(LS.metrics, {}); }
-function setMetrics(metrics) { lsSet(LS.metrics, metrics); }
+function setMetrics(metrics) {
+  lsSet(LS.metrics, metrics);
+
+  if (window.zbodSupabase && window.zbodSupabase.supabaseAvailable) {
+    Object.entries(metrics).forEach(([divisionId, metricsArray]) => {
+      window.zbodSupabase.sbSaveMetrics(divisionId, metricsArray);
+    });
+  }
+}
 function getAAACards() { return lsGet(LS.aaaCards, {}); }
-function setAAACards(cards) { lsSet(LS.aaaCards, cards); }
+function setAAACards(cards) {
+  lsSet(LS.aaaCards, cards);
+
+  if (window.zbodSupabase && window.zbodSupabase.supabaseAvailable) {
+    Object.entries(cards).forEach(([divisionId, findingsArray]) => {
+      window.zbodSupabase.sbSaveKeyFindings(divisionId, findingsArray);
+    });
+  }
+}
 
 // ═══════════════════════════════════════════
 // SUPABASE INTEGRATION
@@ -313,6 +334,36 @@ async function loadFromSupabase() {
       lsSet(LS.asIs, merged);
     }
 
+    if (data.metrics && data.metrics.length > 0) {
+      const allMetrics = getMetrics();
+
+      data.metrics.forEach(row => {
+        try {
+          const sbArr = JSON.parse(row.metrics_json || '[]');
+          allMetrics[row.division_id] = sbArr;
+        } catch (e) {
+          console.warn('Failed to parse metrics_json:', e);
+        }
+      });
+
+      lsSet(LS.metrics, allMetrics);
+    }
+
+    if (data.keyFindings && data.keyFindings.length > 0) {
+      const allCards = getAAACards();
+
+      data.keyFindings.forEach(row => {
+        try {
+          const sbArr = JSON.parse(row.findings_json || '[]');
+          allCards[row.division_id] = sbArr;
+        } catch (e) {
+          console.warn('Failed to parse findings_json:', e);
+        }
+      });
+
+      lsSet(LS.aaaCards, allCards);
+    }
+    
     console.log('Supabase data loaded and merged');
   } catch (e) {
     console.warn('Failed to load from Supabase:', e);
